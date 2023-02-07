@@ -238,8 +238,6 @@ pub mod test_utils {
     mod test {
 
         use super::*;
-        use dotenv::dotenv;
-        use std::env;
 
         #[tokio::test]
         async fn crud_scenario_memory() {
@@ -285,8 +283,12 @@ pub mod test_utils {
             )
         }
 
+        #[cfg(feature = "database-test")]
         #[tokio::test]
         async fn crud_scenario_db() {
+            use dotenv::dotenv;
+            use std::env;
+
             dotenv().ok();
             let database_url =
                 &env::var("DATABASE_URL").expect("undefined env variable $DATABASE_URL");
