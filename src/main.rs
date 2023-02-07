@@ -111,7 +111,10 @@ mod test {
     async fn should_find_todo() {
         let expexted = Todo::new(1, "should_find_todo".to_string());
         let repository = TodoRepositoryForMemory::new();
-        repository.create(CreateTodo::new("should_find_todo".to_string()));
+        repository
+            .create(CreateTodo::new("should_find_todo".to_string()))
+            .await
+            .expect("failed create todo");
         let req = build_todo_req_with_empty("/todos/1", Method::GET);
 
         let res = create_app(repository).oneshot(req).await.unwrap();
@@ -123,7 +126,10 @@ mod test {
     async fn should_get_all_todos() {
         let expected = Todo::new(1, "should_get_all_todos".to_string());
         let repository = TodoRepositoryForMemory::new();
-        repository.create(CreateTodo::new("should_get_all_todos".to_string()));
+        repository
+            .create(CreateTodo::new("should_get_all_todos".to_string()))
+            .await
+            .expect("faild create todo");
         let req = build_todo_req_with_empty("/todos", Method::GET);
 
         let res = create_app(repository).oneshot(req).await.unwrap();
@@ -139,7 +145,10 @@ mod test {
     async fn should_update_todo() {
         let expected = Todo::new(1, "after_update_todo".to_string());
         let repository = TodoRepositoryForMemory::new();
-        repository.create(CreateTodo::new("before_update_todo".to_string()));
+        repository
+            .create(CreateTodo::new("before_update_todo".to_string()))
+            .await
+            .expect("failed create todo");
 
         let req = build_todo_req_with_json(
             "/todos/1",
@@ -156,7 +165,10 @@ mod test {
     #[tokio::test]
     async fn should_delete_todo() {
         let repository = TodoRepositoryForMemory::new();
-        repository.create(CreateTodo::new("before_delete_todo".to_string()));
+        repository
+            .create(CreateTodo::new("before_delete_todo".to_string()))
+            .await
+            .expect("failed create todo");
 
         let req = build_todo_req_with_empty("/todos/1", Method::DELETE);
 
