@@ -164,4 +164,47 @@ mod test {
 
         assert_eq!(StatusCode::NO_CONTENT, res.status());
     }
+
+    #[tokio::test]
+    async fn should_fail_validate_empty_text() {
+        let repository = TodoRepositoryForMemory::new();
+
+        let req =
+            build_todo_req_with_json("/todos", Method::POST, r#"{ "text" : "" }"#.to_string());
+
+        let res = create_app(repository).oneshot(req).await.unwrap();
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+
+        let bytes = hyper::body::to_bytes(res.into_body()).await.unwrap();
+        let body = String::from_utf8(bytes.to_vec()).unwrap();
+
+        assert_eq!(
+            "Validation error: [text: Can not be empty]".to_string(),
+            body
+        );
+    }
+
+    #[tokio::test]
+    async fn should_fail_validate_over_100_text() {
+        let repository = TodoRepositoryForMemory::new();
+
+        let req = build_todo_req_with_json(
+            "/todos",
+            Method::POST,
+            r#"{ "text" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }"#.to_string()
+        );
+
+        let res = create_app(repository).oneshot(req).await.unwrap();
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+
+        let bytes = hyper::body::to_bytes(res.into_body()).await.unwrap();
+        let body = String::from_utf8(bytes.to_vec()).unwrap();
+
+        assert_eq!(
+            "Validation error: [text: Over text length]".to_string(),
+            body
+        );
+    }
 }
