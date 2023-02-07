@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:13-alpine
+    ports:
+      - "5454:5432"
+    # volumes:
+    #   - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: todos
+      TZ: Asia/Tokyo
+    restart: always
+  
