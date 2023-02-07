@@ -2,7 +2,7 @@ mod handlers;
 mod repositories;
 
 use crate::handlers::{all_todo, create_todo, delete_todo, find_todo, update_todo};
-use crate::repositories::{TodoRepository, TodoRepositoryForMemory};
+use crate::repositories::{TodoRepository, TodoRepositoryForDb};
 
 use std::{env, net::SocketAddr, sync::Arc};
 
@@ -11,6 +11,8 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use dotenv::dotenv;
+use sqlx::PgPool;
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +20,15 @@ async fn main() {
     env::set_var("RUST_LOG", log_level);
     tracing_subscriber::fmt::init();
 
-    let repository = TodoRepositoryForMemory::new();
+    dotenv().ok();
+    let database_url = &env::var("DATABASE_URL").expect("undefined env variable: $DATABASE_URL");
+
+    tracing::debug!("start connect database...");
+    let pool = PgPool::connect(database_url)
+        .await
+        .expect(&format!("fail connect database, url is [{}]", database_url));
+    let repository = TodoRepositoryForDb::new(pool.clone());
+
     let app = create_app(repository);
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
@@ -49,7 +59,7 @@ async fn root() -> &'static str {
 
 #[cfg(test)]
 mod test {
-    use crate::repositories::{CreateTodo, Todo};
+    use crate::repositories::{test_utils::TodoRepositoryForMemory, CreateTodo, Todo};
 
     use super::*;
     use axum::{body::Body, response::Response};
